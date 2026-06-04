@@ -11,7 +11,9 @@ Malware renames itself to look legit (svch0st.exe), so name-based detection fail
 
 ```bash
 pip install psutil
+python process_monitor.py
 ```
+Note: needs admin privileges to see all processes
 
 ## Example output
 
@@ -22,7 +24,7 @@ pip install psutil
 ## How It Flags Suspicious Processes
 
 
-At least one suspicious behavior rule matches (path, parent-child, or both)
+Two Rules:
 - Rule 1: Weird Path Detection
 - Rule 2: Suspicious Parent → Child Relationship
 
