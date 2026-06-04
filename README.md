@@ -11,7 +11,7 @@ Malware renames itself to look legit (svch0st.exe), so name-based detection fail
 
 ```bash
 pip install psutil
-python process_monitor.py
+python process_monitor.py --output my_report.jsonl
 ```
 Note: needs admin privileges to see all processes
 
