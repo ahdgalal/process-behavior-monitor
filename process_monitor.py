@@ -57,11 +57,11 @@ def detection(monitor, output):
         path = path.replace("\\", "/")
         if any(d in path for d in suspicious_dirs):
             process.setdefault("Reason", []).append("Executable Running From Weird Path")
-            break
 
         #2 - Suspicious Parent → Child pair
         name = process['Name'].lower()
-        parent = process['Parent'].lower()
+        parent = process['Parent']
+        parent = parent.lower() if parent else None
         if parent in denylist and name in denylist[parent]:
             if parent in ("chrome.exe", "firefox.exe"):
                 if "Executable Running From Weird Path" in process.get("Reason", []):
