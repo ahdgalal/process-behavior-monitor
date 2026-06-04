@@ -1,6 +1,7 @@
 import psutil
 import json
 import argparse
+import platform
 
 def process_monitor():
     monitor={}
@@ -19,7 +20,7 @@ def process_monitor():
 
 def process_tree(monitor):
     tree = {}
-    for pid, process in monitor.items():
+    for process in monitor.values():
             parent = process['Parent']
             ppid = process['PPID']
             name = process['Name']
@@ -49,14 +50,14 @@ suspicious_dirs = [
 ]
 
 def detection(monitor, output):
-    for pid, process in monitor.items():
+    for process in monitor.values():
         #1 - Executable Running From Weird Path
         path = process['Path']
-        if not path: continue
-        path = path.lower()
-        path = path.replace("\\", "/")
-        if any(d in path for d in suspicious_dirs):
-            process.setdefault("Reason", []).append("Executable Running From Weird Path")
+        if path:
+            path = path.lower().replace("\\", "/")
+            norm = "/" + path.strip("/") + "/"
+            if any(f"/{d}/" in norm for d in suspicious_dirs):
+                process.setdefault("Reason", []).append("Executable Running From Weird Path")
 
         #2 - Suspicious Parent → Child pair
         name = process['Name'].lower()
@@ -81,6 +82,9 @@ def report(data, output):
         print(f"Error: {e}")
 
 def main():
+    if platform.system() != "Windows":
+        print("Warning: detection rules are tuned for Windows.")
+
     parser = argparse.ArgumentParser(description="Process Behavior Monitor")
     parser.add_argument("--output", type=str, default="report.jsonl")
     args = parser.parse_args()
@@ -89,6 +93,9 @@ def main():
     m = process_monitor()
     detection(m, output)
     process_tree(m)
+
+    print(f"Scanned {len(m)} processes.")
+    print(f"Report saved to {args.output}")
 
 if __name__ == "__main__": 
     main()
