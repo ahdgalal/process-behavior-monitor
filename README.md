@@ -9,8 +9,10 @@ Malware renames itself to look legit (svch0st.exe), so name-based detection fail
 
 ## Installation & Usage
 
+**Requires Python 3.11+**
+
 ```bash
-pip install psutil
+pip install -r requirements.txt
 python process_monitor.py --output my_report.jsonl
 ```
 
