@@ -73,6 +73,7 @@ def detection(monitor, output):
 
     scan_id = str(uuid4())
     timestamp = datetime.now(UTC).isoformat()
+    findings = 0
 
     for process in monitor.values():
         # 1 - Executable Running From Weird Path
@@ -102,6 +103,8 @@ def detection(monitor, output):
 
         if "Reason" in process:
             report(process, output, scan_id, timestamp)
+            findings += 1
+    return findings
 
 
 def report(data, output, scan_id, timestamp):
@@ -130,12 +133,18 @@ def main():
     output = args.output
 
     m = process_monitor()
-    detection(m, output)
+    findings = detection(m, output)
     if args.tree:
         process_tree(m, args.tree)
 
     print(f"Scanned {len(m)} processes.")
-    print(f"Report saved to {args.output}")
+    if findings:
+        print(f"Found {findings} suspicious processes.")
+        print(f"Report saved to {args.output}")
+    else:
+        print("No suspicious processes found.")
+
+
     if args.tree:
         print(f"Process tree saved to {args.tree}")
 
