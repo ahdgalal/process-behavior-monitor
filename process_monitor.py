@@ -56,6 +56,12 @@ suspicious_dirs = [
 ]
 
 def detection(monitor, output):
+    from datetime import datetime, timezone
+    from uuid import uuid4
+
+    scan_id = str(uuid4())
+    timestamp = datetime.now(timezone.utc).isoformat()
+
     for process in monitor.values():
         #1 - Executable Running From Weird Path
         path = process['Path']
@@ -77,13 +83,17 @@ def detection(monitor, output):
                 process.setdefault("Reason", []).append("Suspicious Parent -> Child pair")
         
         if "Reason" in process:  
-            report(process, output) 
+            report(process, output, scan_id, timestamp)
         
-def report(data, output):
+def report(data, output, scan_id, timestamp):
+    data = data.copy()
+    data["scan_id"] = scan_id
+    data["timestamp"] = timestamp
+
     try:
         with open(output, "a") as f:
             json.dump(data, f)
-            f.write("\n")   
+            f.write("\n")
     except OSError as e:
         print(f"Error: {e}")
 
