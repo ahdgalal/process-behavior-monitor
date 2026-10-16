@@ -24,22 +24,30 @@ def process_monitor():
 
     return monitor
 
-def process_tree(monitor):
+def process_tree(monitor, output):
     tree = {}
+
     for process in monitor.values():
-            parent = process['Parent']
-            ppid = process['PPID']
-            name = process['Name']
-            if parent:
-                tree.setdefault(f"{parent}_{ppid}", []).append(name)
-            else:
-                tree.setdefault("Orphan Processes", []).append(name)
-        
-    # Process Tree File
+        parent = process["Parent"]
+        ppid = process["PPID"]
+        pid = process["PID"]
+        name = process["Name"]
+
+        if parent:
+            tree.setdefault(f"{parent}_{ppid}", []).append({
+                "PID": pid,
+                "Name": name,
+            })
+        else:
+            tree.setdefault("Orphan Processes", []).append({
+                "PID": pid,
+                "Name": name,
+            })
+
     try:
-        with open("process_tree.jsonl", "w") as f:
-            json.dump(tree, f)
-            f.write("\n")   
+        with open(output, "w") as f:
+            json.dump(tree, f, indent=2)
+            f.write("\n")
     except OSError as e:
         print(f"Error: {e}")
 
@@ -103,15 +111,19 @@ def main():
 
     parser = argparse.ArgumentParser(description="Process Behavior Monitor")
     parser.add_argument("--output", type=str, default="report.jsonl")
+    parser.add_argument("--tree", type=str, metavar="FILE", help="Save the process tree to a JSON file.")
     args = parser.parse_args()
     output = args.output
 
     m = process_monitor()
     detection(m, output)
-    process_tree(m)
+    if args.tree:
+        process_tree(m, args.tree)
 
     print(f"Scanned {len(m)} processes.")
     print(f"Report saved to {args.output}")
+    if args.tree:
+        print(f"Process tree saved to {args.tree}")
 
 if __name__ == "__main__": 
     main()
