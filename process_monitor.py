@@ -1,6 +1,7 @@
 import argparse
 import json
 import platform
+import sys
 from datetime import UTC, datetime
 from uuid import uuid4
 
@@ -57,8 +58,10 @@ def process_tree(monitor, output):
         with open(output, "w") as f:
             json.dump(tree, f, indent=2)
             f.write("\n")
+        return True
     except OSError as e:
-        print(f"Error: {e}")
+        print(f"Error writing process tree: {e}", file=sys.stderr)
+        return False
 
 
 denylist = {
@@ -67,7 +70,7 @@ denylist = {
     "chrome.exe": ["cmd.exe", "powershell.exe"],
     "firefox.exe": ["cmd.exe", "powershell.exe"],
 }
-suspicious_dirs = ["downloads", "temp", "appdata/local/temp"]
+suspicious_dirs = ["downloads", "temp"]
 
 
 def detection(monitor, output):
@@ -75,6 +78,7 @@ def detection(monitor, output):
     scan_id = str(uuid4())
     timestamp = datetime.now(UTC).isoformat()
     findings = 0
+    report_success = True
 
     for process in monitor.values():
         # 1 - Executable Running From Weird Path
@@ -103,9 +107,10 @@ def detection(monitor, output):
                 )
 
         if "Reason" in process:
-            report(process, output, scan_id, timestamp)
             findings += 1
-    return findings
+            if not report(process, output, scan_id, timestamp):
+                report_success = False
+    return findings, report_success
 
 
 def report(data, output, scan_id, timestamp):
@@ -117,8 +122,10 @@ def report(data, output, scan_id, timestamp):
         with open(output, "a") as f:
             json.dump(data, f)
             f.write("\n")
+        return True
     except OSError as e:
-        print(f"Error: {e}")
+        print(f"Error writing report: {e}", file=sys.stderr)
+        return False
 
 
 def main():
@@ -134,19 +141,23 @@ def main():
     output = args.output
 
     m = process_monitor()
-    findings = detection(m, output)
-    if args.tree:
-        process_tree(m, args.tree)
+    findings, report_success = detection(m, output)
 
     print(f"Scanned {len(m)} processes.")
-    if findings:
+    if findings == 0:
+        print("No suspicious processes found.")
+    elif report_success:
         print(f"Found {findings} suspicious processes.")
         print(f"Report saved to {args.output}")
     else:
-        print("No suspicious processes found.")
+        print(
+            f"Found {findings} suspicious processes, but the report could not be fully written."
+        )
 
     if args.tree:
-        print(f"Process tree saved to {args.tree}")
+        tree_success = process_tree(m, args.tree)
+        if tree_success:
+            print(f"Process tree saved to {args.tree}")
 
 
 if __name__ == "__main__":
