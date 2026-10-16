@@ -154,10 +154,15 @@ def main():
             f"Found {findings} suspicious processes, but the report could not be fully written."
         )
 
+    tree_success = True
+
     if args.tree:
         tree_success = process_tree(m, args.tree)
         if tree_success:
             print(f"Process tree saved to {args.tree}")
+
+    if not report_success or not tree_success:
+        sys.exit(1)
 
 
 if __name__ == "__main__":
