@@ -1,8 +1,8 @@
 import argparse
 import json
 import platform
-from datetime import UTC
-
+from datetime import UTC, datetime
+from uuid import uuid4
 import psutil
 
 
@@ -70,8 +70,6 @@ suspicious_dirs = ["downloads", "temp", "appdata/local/temp"]
 
 
 def detection(monitor, output):
-    from datetime import datetime
-    from uuid import uuid4
 
     scan_id = str(uuid4())
     timestamp = datetime.now(UTC).isoformat()
