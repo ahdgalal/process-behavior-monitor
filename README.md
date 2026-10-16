@@ -48,6 +48,7 @@ Special condition (browser protection gate): Browser pairs are a weak signal, so
   name based rule. The path rule may still flag it if it runs
   from a configured suspicious directory, but renamed executables
   in other locations may go undetected.
+- Single snapshot monitoring: the monitor checks processes only at scan time, so short lived processes that start and exit between scans may be missed.
 
 
 ## Future work
