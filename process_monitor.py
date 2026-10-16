@@ -4,18 +4,24 @@ import argparse
 import platform
 
 def process_monitor():
-    monitor={}
-    for p in psutil.process_iter():
-        try:
-            monitor[p.pid] = {
-                "Name": p.name(),
-                "PID": p.pid,
-                "Parent": p.parent().name() if p.parent() else None,
-                "PPID": p.ppid(),
-                "Path": p.exe()
-            }
-        except (psutil.NoSuchProcess, psutil.AccessDenied):
-            continue
+    monitor = {}
+    attrs = ["pid", "name", "ppid", "exe"]
+    for p in psutil.process_iter(attrs=attrs, ad_value=None):
+        info = p.info
+        monitor[info["pid"]] = {
+            "Name": info["name"] or "",
+            "PID": info["pid"],
+            "Parent": None,
+            "PPID": info["ppid"],
+            "Path": info["exe"],
+        }
+
+    # 2nd pass: parent names come from snapshot, not a new OS call
+    for proc in monitor.values():
+        parent = monitor.get(proc["PPID"])
+        if parent and parent is not proc:
+            proc["Parent"] = parent["Name"]
+
     return monitor
 
 def process_tree(monitor):
