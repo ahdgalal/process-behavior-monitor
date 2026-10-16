@@ -3,6 +3,7 @@ import json
 import platform
 from datetime import UTC, datetime
 from uuid import uuid4
+
 import psutil
 
 
@@ -143,7 +144,6 @@ def main():
         print(f"Report saved to {args.output}")
     else:
         print("No suspicious processes found.")
-
 
     if args.tree:
         print(f"Process tree saved to {args.tree}")
