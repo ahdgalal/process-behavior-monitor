@@ -13,7 +13,16 @@ Malware renames itself to look legit (svch0st.exe), so name-based detection fail
 pip install psutil
 python process_monitor.py --output my_report.jsonl
 ```
-Note: needs admin privileges to see all processes
+
+To also save the process tree, use `--tree` with an output path:
+
+```bash
+python process_monitor.py --output my_report.jsonl --tree process_tree.json
+```
+
+The process tree is optional and only generated when `--tree` is provided. Each child entry includes its PID and name.
+
+Note: run as admin to read every executable path. Without admin, all processes are still scanned, but some paths show as `null`, so the weird path rule can’t check them.
 
 ## How It Flags Suspicious Processes
 
